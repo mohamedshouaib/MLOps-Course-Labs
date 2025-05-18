@@ -1,0 +1,15 @@
+artifact_uri: mlflow-artifacts:/460248814939969232/74f22a54cbeb486bb86a099672303544/artifacts
+end_time: 1747603018956
+entry_point_name: ''
+experiment_id: '460248814939969232'
+lifecycle_stage: active
+run_id: 74f22a54cbeb486bb86a099672303544
+run_name: xgboost
+run_uuid: 74f22a54cbeb486bb86a099672303544
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1747603018835
+status: 3
+tags: []
+user_id: Shouaib

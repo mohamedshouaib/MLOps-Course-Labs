@@ -1,0 +1,15 @@
+artifact_uri: mlflow-artifacts:/460248814939969232/9110d8b504bd45248567d9532abcc320/artifacts
+end_time: 1747603014867
+entry_point_name: ''
+experiment_id: '460248814939969232'
+lifecycle_stage: active
+run_id: 9110d8b504bd45248567d9532abcc320
+run_name: logistic
+run_uuid: 9110d8b504bd45248567d9532abcc320
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1747603011984
+status: 3
+tags: []
+user_id: Shouaib
