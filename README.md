@@ -55,7 +55,7 @@ The dataset is from [Kaggle](https://www.kaggle.com/datasets/shantanudhakadd/ban
     Visit: http://127.0.0.1:5000 to track experiments.
 
 ## 📂 Project Structure
-.
+```.
 ├── dataset/
 │ └── Churn_Modelling.csv
 ├── src
@@ -66,3 +66,4 @@ The dataset is from [Kaggle](https://www.kaggle.com/datasets/shantanudhakadd/ban
 │ └── __init__.py
 ├── requirements.txt
 ├── README.md
+```
