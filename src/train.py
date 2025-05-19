@@ -17,7 +17,7 @@ from mlflow_utils import log_metrics_and_artifacts
 
 def main():
     os.makedirs("artifacts", exist_ok=True)
-    mlflow.set_tracking_uri("http://127.0.0.1:5000")
+    mlflow.set_tracking_uri("http://172.17.0.1:5000")
     mlflow.set_experiment("Churn Prediction")
 
     df = pd.read_csv("/media/shouaib/Work/2025/ITI/31_MLOps/Lab01/MLOps-Course-Labs/dataset/Churn_Modelling.csv")
