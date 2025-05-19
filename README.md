@@ -7,12 +7,9 @@ This repository contains a FastAPI application that serves a machine learning mo
 ```
 .
 ├── app.py                  # FastAPI application
-├── test_app.py             # Tests for the API
+├── test.py                 # Tests for the API
 ├── requirements.txt        # Dependencies
-├── data_utils.py           # Data preprocessing utilities
-├── model_utils.py          # Model training utilities
-├── mlflow_utils.py         # MLflow integration utilities
-└── train.py                # Model training script
+└── Dockerfile              # Docker file
 ```
 
 ## Setup and Installation
@@ -73,7 +70,7 @@ Send a POST request to `/predict` with JSON data like:
 Run the tests using pytest:
 
 ```
-pytest test_app.py -v
+pytest test.py -v
 ```
 
 ## Model Information
