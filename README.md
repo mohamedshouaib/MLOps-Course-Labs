@@ -3,8 +3,7 @@
 This repository contains a FastAPI application that serves a machine learning model for customer churn prediction.
 
 ## Project Structure
-123456789
-hgyg
+
 ```
 .
 ├── app.py                  # FastAPI application
