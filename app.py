@@ -1,8 +1,8 @@
 import os
 import logging
-import mlflow
 import numpy as np
 import pandas as pd
+import pickle
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -33,16 +33,20 @@ class ChurnResponse(BaseModel):
     will_churn: bool
     model_name: str
     model_version: str
+    
+    model_config = {"protected_namespaces": ()}
 
 class HealthResponse(BaseModel):
     status: str
     model_loaded: bool
+    
+    model_config = {"protected_namespaces": ()}
 
 # === Global Variables ===
 model = None
 model_name = ""
 model_version = ""
-MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000")
+MODEL_DIR = "models"  
 
 # === Preprocessing ===
 def preprocess(data: ChurnRequest) -> np.ndarray:
@@ -57,30 +61,25 @@ def preprocess(data: ChurnRequest) -> np.ndarray:
                "Geography_Germany", "Geography_Spain"]
     return df[ordered].values.astype(np.float32)
 
-# === Load Best Model ===
+# === Load Model from Local File ===
 def load_model():
     global model, model_name, model_version
-    try:
-        mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
-        client = mlflow.tracking.MlflowClient()
-        exp = client.get_experiment_by_name("Churn Prediction")
-        runs = client.search_runs([exp.experiment_id], order_by=["metrics.accuracy DESC"])
-        best_run = runs[0]
-        run_id = best_run.info.run_id
+    priority_models = ["random_forest_model.pkl"]
 
-        for name in ["xgboost", "random_forest", "logistic"]:
+    for file_name in priority_models:
+        model_path = os.path.join(MODEL_DIR, file_name)
+        if os.path.exists(model_path):
             try:
-                uri = f"runs:/{run_id}/{name}_model"
-                model = mlflow.pyfunc.load_model(uri)
-                model_name = name
-                model_version = run_id
-                logger.info(f"Loaded {name} model.")
+                with open(model_path, "rb") as f:
+                    model = pickle.load(f)
+                model_name = file_name.split("_model.pkl")[0]
+                model_version = "local"
+                logger.info(f"Loaded local model: {file_name}")
                 return
-            except:
-                continue
-        logger.error("No model loaded.")
-    except Exception as e:
-        logger.error(f"Error loading model: {e}")
+            except Exception as e:
+                logger.error(f"Failed to load model {file_name}: {e}")
+    
+    logger.error("No valid model found in local directory.")
 
 # === Events ===
 @app.on_event("startup")
@@ -102,7 +101,7 @@ async def predict(req: ChurnRequest):
         raise HTTPException(status_code=503, detail="Model not loaded.")
     try:
         X = preprocess(req)
-        prob = float(model.predict(X)[0])
+        prob = float(model.predict_proba(X)[0][1])  
         return {
             "churn_probability": prob,
             "will_churn": prob > 0.5,
@@ -110,4 +109,5 @@ async def predict(req: ChurnRequest):
             "model_version": model_version
         }
     except Exception as e:
+        logger.exception("Prediction error")
         raise HTTPException(status_code=500, detail=str(e))
