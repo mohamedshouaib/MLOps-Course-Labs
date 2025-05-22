@@ -27,7 +27,7 @@ jobs:
 
     - name: Run tests
       run: |
-        pytest test.py  
+        pytest app/test.py  
 
   # deploy:
   #   name: Build, Push to ECR & Deploy to EC2
