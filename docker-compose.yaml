@@ -1,6 +1,6 @@
 services:
   api:
-    build: app
+    image: churn-prediction:shouaib533
     ports:
       - 443:8000
     volumes:
