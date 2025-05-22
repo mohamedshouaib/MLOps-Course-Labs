@@ -52,13 +52,6 @@ jobs:
       run: |
         docker build -t ${{ env.IMAGE_NAME }}:${{ env.TAG }} .
 
-    - name: Tag and Push to ECR
-      run: |
-        FULL_IMAGE_NAME="${{ steps.login-ecr.outputs.registry }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}"
-        docker tag ${{ env.IMAGE_NAME }}:${{ env.TAG }} $FULL_IMAGE_NAME
-        docker push $FULL_IMAGE_NAME
-        echo "ECR_IMAGE=$FULL_IMAGE_NAME" >> $GITHUB_ENV
-
     - name: Setup SSH Key
       run: |
         mkdir -p ~/.ssh
@@ -67,23 +60,20 @@ jobs:
 
     - name: Deploy to EC2
       run: |
-        ssh -i ~/.ssh/ec2_key.pem \
-          -o StrictHostKeyChecking=no \
-          -o UserKnownHostsFile=/dev/null \
-          ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
-          "sudo apt-get update -y && \
-          sudo apt-get install -y docker.io docker-compose && \
-          sudo systemctl start docker && \
-          mkdir -p ~/app && \
-          cd ~/app && \
-          [ -d $(basename \"${{ github.repository }}\") ] && \
-          cd $(basename \"${{ github.repository }}\") && git pull || \
-          git clone https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git && \
-          cd $(basename \"${{ github.repository }}\") && \
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
-          sudo docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }} && \
-          sed -i \"s|image:.*|image: $ECR_IMAGE|\" docker-compose.yml && \
-          sudo docker-compose down || true && \
-          sudo docker-compose pull && \
-          sudo docker-compose up -d"
-          
+        ssh -o StrictHostKeyChecking=no -i ec2_key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+          sudo yum update -y || sudo apt update -y
+          sudo yum install -y git docker || sudo apt install -y git docker.io
+          sudo service docker start || sudo systemctl start docker
+          sudo usermod -aG docker $USER
+          git clone https://github.com/${{ github.repository }} || cd $(basename "${{ github.repository }}") && git pull
+
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
+            | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
+
+          cd $(basename "${{ github.repository }}")
+          sed -i "s|image:.*|image: $ECR_IMAGE|" docker-compose.yml
+
+          docker-compose down || true
+          docker-compose pull
+          docker-compose up -d
+        EOF
