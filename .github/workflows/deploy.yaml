@@ -5,10 +5,15 @@ on:
     branches:
       - main
 
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  IMAGE_NAME: churn-prediction
+  TAG: shouaib533 
+
 jobs:
-  test:
-    name: Run Tests
+  build-and-deploy:
     runs-on: ubuntu-latest
+
     defaults:
       run:
         working-directory: ./app  
@@ -30,147 +35,94 @@ jobs:
       run: |
         pytest test.py -v
 
-  build_and_push:
-    name: Build and Push to ECR
-    needs: test
-    runs-on: ubuntu-latest
-
-    # env:
-    #   IMAGE_TAG: shouaib533
-
-    # steps:
-    # - name: Checkout repository
-    #   uses: actions/checkout@v3
-
-    # - name: Configure AWS credentials
-    #   uses: aws-actions/configure-aws-credentials@v2
-    #   with:
-    #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-    #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-    #     aws-region: ${{ secrets.AWS_REGION }}
-
-    # - name: Login to Amazon ECR
-    #   id: login-ecr
-    #   uses: aws-actions/amazon-ecr-login@v2
-    #   with:
-    #     region: ${{ secrets.AWS_REGION }}
+    - name: Log in to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
 
     # - name: Build Docker image
     #   run: |
-    #     docker build -t ${{ secrets.ECR_REPO }}:${{ env.IMAGE_TAG }} .
+    #     docker build -t $IMAGE_NAME:${{ env.TAG }} .
 
-    # - name: Tag & Push to ECR
+    # - name: Tag and Push to ECR
+    #   env:
+    #     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
     #   run: |
-    #     ECR_URL=$(aws ecr describe-repositories --repository-names ${{ secrets.ECR_REPO }} --query 'repositories[0].repositoryUri' --output text)
-    #     docker tag ${{ secrets.ECR_REPO }}:${{ env.IMAGE_TAG }} $ECR_URL:${{ env.IMAGE_TAG }}
-    #     docker push $ECR_URL:${{ env.IMAGE_TAG }}
-    #     echo "ECR_URL=$ECR_URL" >> $GITHUB_ENV
+    #     docker tag $IMAGE_NAME:${{ env.TAG }} $ECR_REGISTRY/$IMAGE_NAME:${{ env.TAG }}
+    #     docker push $ECR_REGISTRY/$IMAGE_NAME:${{ env.TAG }}
+    #     echo "ECR_IMAGE=$ECR_REGISTRY/$IMAGE_NAME:${{ env.TAG }}" >> $GITHUB_ENV
 
-  # deploy:
-  #   name: Deploy to ECS
-  #   needs: build_and_push
-  #   runs-on: ubuntu-latest
-
-  #   steps:
-  #   - name: Configure AWS credentials
-  #     uses: aws-actions/configure-aws-credentials@v2
-  #     with:
-  #       aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #       aws-region: ${{ secrets.AWS_REGION }}
-
-  #   - name: Deploy to ECS
-  #     run: |
-  #       # Update ECS service with the new image
-  #       aws ecs update-service \
-  #         --cluster ${{ secrets.ECS_CLUSTER }} \
-  #         --service ${{ secrets.ECS_SERVICE }} \
-  #         --force-new-deployment
+ 
 
 
-
-#------------------
-# name: Deploy to AWS EC2
+# name: CI/CD Pipeline - Deploy to AWS EC2
 
 # on:
 #   push:
 #     branches:
-#       - main
+#       - monitoring
+
+# env:
+#   AWS_REGION: ${{ secrets.AWS_REGION }}
+#   IMAGE_NAME: churn-prediction
+#   TAG: alaa001  
 
 # jobs:
-#   test:
-#     name: Run Tests
+#   build-and-deploy:
 #     runs-on: ubuntu-latest
-#     defaults:
-#       run:
-#         working-directory: ./app  
 
 #     steps:
-#     - name: Checkout repository
-#       uses: actions/checkout@v3
+#       - name: Checkout repository
+#         uses: actions/checkout@v3
 
-#     - name: Set up Python
-#       uses: actions/setup-python@v4
-#       with:
-#         python-version: '3.12'
+#       - name: Set up Python
+#         uses: actions/setup-python@v4
+#         with:
+#           python-version: 3.12
 
-#     - name: Install dependencies
-#       run: |
-#         pip install -r requirements.txt
+#       - name: Install dependencies
+#         run: |
+#           pip install -r requirements.txt
 
-#     - name: Run pytest
-#       run: |
-#         pytest test.py -v
+#       - name: Run Unit Tests
+#         run: pytest test/
 
-#     - name: Log in to Amazon ECR
-#       id: login-ecr
-#       uses: aws-actions/amazon-ecr-login@v2
+#       - name: Log in to Amazon ECR
+#         id: login-ecr
+#         uses: aws-actions/amazon-ecr-login@v2
 
-  # deploy:
-  #   name: Build, Push to ECR & Deploy to EC2
-  #   needs: test  
-  #   runs-on: ubuntu-latest
+#       - name: Build Docker image
+#         run: |
+#           docker build -t $IMAGE_NAME:${{ env.TAG }} .
 
-  #   env:
-  #     IMAGE_TAG: shouaib533
+#       - name: Tag and Push to ECR
+#         env:
+#           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+#         run: |
+#           docker tag $IMAGE_NAME:${{ env.TAG }} $ECR_REGISTRY/$IMAGE_NAME:${{ env.TAG }}
+#           docker push $ECR_REGISTRY/$IMAGE_NAME:${{ env.TAG }}
+#           echo "ECR_IMAGE=$ECR_REGISTRY/$IMAGE_NAME:${{ env.TAG }}" >> $GITHUB_ENV
 
-    # steps:
-    # - name: Checkout repository
-    #   uses: actions/checkout@v3
+#       - name: Setup SSH
+#         run: |
+#           echo "${{ secrets.EC2_SSH_KEY }}" | base64 -d > ec2_key.pem
+#           chmod 400 ec2_key.pem
 
-    # - name: Configure AWS credentials
-    #   uses: aws-actions/configure-aws-credentials@v2
-    #   with:
-    #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-    #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-    #     aws-region: ${{ secrets.AWS_REGION }}
+#       - name: Deploy to EC2
+#         run: |
+#           ssh -o StrictHostKeyChecking=no -i ec2_key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+#             sudo yum update -y || sudo apt update -y
+#             sudo yum install -y git docker || sudo apt install -y git docker.io
+#             sudo service docker start || sudo systemctl start docker
+#             sudo usermod -aG docker $USER
+#             git clone https://github.com/${{ github.repository }} || cd $(basename "${{ github.repository }}") && git pull
 
-    # - name: Login to Amazon ECR
-    #   id: login-ecr
-    #   uses: aws-actions/amazon-ecr-login@v1
+#             aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
+#               | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
 
-    # - name: Build Docker image
-    #   run: |
-    #     docker build -t ${{ secrets.ECR_REPO }}:${{ env.IMAGE_TAG }} .
+#             cd $(basename "${{ github.repository }}")
+#             sed -i "s|image:.*|image: $ECR_IMAGE|" docker-compose.yml
 
-    # - name: Tag & Push to ECR
-    #   run: |
-    #     ECR_URL=$(aws ecr describe-repositories --repository-names ${{ secrets.ECR_REPO }} --query 'repositories[0].repositoryUri' --output text)
-    #     docker tag ${{ secrets.ECR_REPO }}:${{ env.IMAGE_TAG }} $ECR_URL:${{ env.IMAGE_TAG }}
-    #     docker push $ECR_URL:${{ env.IMAGE_TAG }}
-    #     echo "ECR_URL=$ECR_URL" >> $GITHUB_ENV
-
-    # - name: SSH & Deploy on EC2
-    #   uses: appleboy/ssh-action@v1.0.0
-    #   with:
-    #     host: ${{ secrets.EC2_HOST }}
-    #     username: ubuntu
-    #     key: ${{ secrets.EC2_SSH_KEY }}
-    #     script: |
-    #       sudo rm -rf churn-app
-    #       git clone https://github.com/${{ github.repository }} churn-app
-    #       cd churn-app
-    #       sed -i "s|build: app|image: ${{ env.ECR_URL }}:${{ env.IMAGE_TAG }}|" docker-compose.yaml
-    #       docker-compose down || true
-    #       docker-compose pull
-    #       docker-compose up -d
+#             docker-compose down || true
+#             docker-compose pull
+#             docker-compose up -d
+#           EOF
