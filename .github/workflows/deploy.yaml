@@ -9,6 +9,10 @@ jobs:
   test:
     name: Run Tests
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./app  
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
@@ -16,15 +20,22 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.12'  
+        python-version: '3.12'
 
     - name: Install dependencies
       run: |
-        pip install -r app/requirements.txt
+        pip install -r requirements.txt
+
+    # - name: Verify Python path
+    #   run: |
+    #     python -c "import sys; print(sys.path)"
+    #     pwd
+    #     ls -la
 
     - name: Run pytest
       run: |
-        pytest app/test.py -v 
+        pytest test.py -v
+
 
   # deploy:
   #   name: Build, Push to ECR & Deploy to EC2
