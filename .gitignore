@@ -1,0 +1,12 @@
+__pycache__/
+.ipynb_checkpoints/
+*.pyc
+*.pkl
+*.log
+mlruns/
+.env
+venv/
+.envrc
+*.db
+*.sqlite
+.DS_Store
