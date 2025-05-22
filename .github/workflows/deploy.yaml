@@ -8,19 +8,26 @@ on:
 env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
   IMAGE_NAME: churn-prediction
-  TAG: shouaib533 
+  TAG: ${{ github.sha }}  
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
     defaults:
       run:
-        working-directory: ./app  
+        working-directory: ./app
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
+
+    # Configure AWS credentials BEFORE ECR login
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -38,19 +45,20 @@ jobs:
     - name: Log in to Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
+      with:
+        region: ${{ secrets.AWS_REGION }}  
 
     - name: Build Docker image
       run: |
-        docker build -t $IMAGE_NAME:${{ env.TAG }} .
+        docker build -t ${{ env.IMAGE_NAME }}:${{ env.TAG }} .
 
     - name: Tag and Push to ECR
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
       run: |
-        docker tag $IMAGE_NAME:${{ env.TAG }} $ECR_REGISTRY/$IMAGE_NAME:${{ env.TAG }}
-        docker push $ECR_REGISTRY/$IMAGE_NAME:${{ env.TAG }}
-        echo "ECR_IMAGE=$ECR_REGISTRY/$IMAGE_NAME:${{ env.TAG }}" >> $GITHUB_ENV
-        
+        FULL_IMAGE_NAME="${{ steps.login-ecr.outputs.registry }}/${{ env.IMAGE_NAME }}:${{ env.TAG }}"
+        docker tag ${{ env.IMAGE_NAME }}:${{ env.TAG }} $FULL_IMAGE_NAME
+        docker push $FULL_IMAGE_NAME
+        echo "ECR_IMAGE=$FULL_IMAGE_NAME" >> $GITHUB_ENV
+
  
 
 
