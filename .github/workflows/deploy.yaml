@@ -64,7 +64,6 @@ jobs:
         mkdir -p ~/.ssh
         echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/ec2_key.pem
         chmod 600 ~/.ssh/ec2_key.pem
-        echo "${{ secrets.EC2_HOST }} ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI..." >> ~/.ssh/known_hosts
 
     - name: Deploy to EC2
       run: |
@@ -72,24 +71,18 @@ jobs:
           -o StrictHostKeyChecking=no \
           -o UserKnownHostsFile=/dev/null \
           ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
-          "bash -s" << 'EOF'
-        # EC2 Instance Commands:
-        sudo apt-get update -y
-        sudo apt-get install -y docker.io docker-compose
-        sudo systemctl start docker
-        
-        mkdir -p ~/app
-        cd ~/app
-        git clone https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git || \
-          (cd $(basename "${{ github.repository }}") && git pull)
-        
-        aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
-          sudo docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
-        
-        cd $(basename "${{ github.repository }}")
-        sed -i "s|image:.*|image: $ECR_IMAGE|" docker-compose.yml
-        
-        sudo docker-compose down || true
-        sudo docker-compose pull
-        sudo docker-compose up -d
-        EOF
+          "sudo apt-get update -y && \
+          sudo apt-get install -y docker.io docker-compose && \
+          sudo systemctl start docker && \
+          mkdir -p ~/app && \
+          cd ~/app && \
+          [ -d $(basename \"${{ github.repository }}\") ] && \
+          cd $(basename \"${{ github.repository }}\") && git pull || \
+          git clone https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git && \
+          cd $(basename \"${{ github.repository }}\") && \
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
+          sudo docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }} && \
+          sed -i \"s|image:.*|image: $ECR_IMAGE|\" docker-compose.yml && \
+          sudo docker-compose down || true && \
+          sudo docker-compose pull && \
+          sudo docker-compose up -d"
