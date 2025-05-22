@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      IMAGE_TAG: shouaib978
+      IMAGE_TAG: shouaib533
 
     # steps:
     # - name: Checkout repository
