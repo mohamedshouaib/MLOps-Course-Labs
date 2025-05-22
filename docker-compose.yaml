@@ -1,6 +1,6 @@
 services:
   api:
-    image: churn-prediction:shouaib533
+    image: ${AWS_ACCOUNT_ID }.dkr.ecr.${AWS_REGION }.amazonaws.com/churn-prediction:shouaib533
     ports:
       - 443:8000
     volumes:
