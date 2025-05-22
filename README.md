@@ -1,4 +1,3 @@
-```markdown
 # Churn Prediction API
 
 This repository contains a Dockerized FastAPI application that serves a pre-trained machine learning model (Random Forest) for predicting customer churn. It includes testing, CI/CD deployment to AWS EC2, and monitoring with Prometheus and Grafana.
@@ -8,7 +7,6 @@ This repository contains a Dockerized FastAPI application that serves a pre-trai
 ## 🗂️ Project Structure
 
 ```
-
 .
 ├── app
 │   ├── app.py                 # Main FastAPI app
@@ -16,7 +14,7 @@ This repository contains a Dockerized FastAPI application that serves a pre-trai
 │   ├── requirements.txt       # Python dependencies
 │   ├── Dockerfile             # Docker build file
 │   └── models
-│       └── random\_forest\_model.pkl  # Serialized ML model
+│       └── random_forest_model.pkl  # Serialized ML model
 ├── monitoring
 │   ├── dashboard.json         # Grafana dashboard config
 │   ├── dashboard.yml          # Grafana dashboard provisioning
@@ -26,29 +24,25 @@ This repository contains a Dockerized FastAPI application that serves a pre-trai
 ├── .github/workflows/deploy.yaml  # GitHub Actions CI/CD pipeline
 ├── .gitignore
 └── README.md
-
-````
+```
 
 ---
 
 ## 🚀 Setup & Installation
 
 1. **Clone the repository**
-
 ```bash
 git clone https://github.com/mohamedshouaib/MLOps-Course-Labs.git
 cd churn-app
-````
+```
 
 2. **Create a virtual environment**
-
 ```bash
 python -m venv venv
 source venv/bin/activate  # For Windows: venv\Scripts\activate
 ```
 
 3. **Install dependencies**
-
 ```bash
 pip install -r app/requirements.txt
 ```
@@ -83,7 +77,6 @@ uvicorn app:app --reload --host 0.0.0.0 --port 8000
 | `/predict` | POST   | Predict churn from JSON data |
 
 📤 **Sample input to `/predict`**:
-
 ```json
 {
   "CreditScore": 700,
@@ -114,19 +107,16 @@ pytest test.py -v
 ## 🐳 Docker Usage
 
 ### 1. Build Image
-
 ```bash
 docker build -t churn-api:latest ./app
 ```
 
 ### 2. Run with Docker Compose
-
 ```bash
 docker-compose up --build
 ```
 
 This spins up:
-
 * The FastAPI application
 * Prometheus for metrics
 * Grafana for dashboards
@@ -136,12 +126,10 @@ This spins up:
 ## 📊 Monitoring Stack
 
 Configuration files in `monitoring/`:
-
 * Prometheus is configured via `prometheus.yml`
 * Grafana dashboards and datasources are provisioned on startup.
 
 To access Grafana:
-
 ```
 http://localhost:3000
 Login: admin / admin
@@ -152,9 +140,7 @@ Login: admin / admin
 ## 🚀 CI/CD (GitHub Actions → AWS EC2)
 
 Located at `.github/workflows/deploy.yaml`:
-
 * On push to `main`:
-
   * Runs `pytest`
   * Builds and pushes a Docker image to AWS ECR
   * SSH into EC2
