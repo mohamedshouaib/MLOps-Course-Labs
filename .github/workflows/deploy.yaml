@@ -50,7 +50,7 @@ jobs:
         docker tag $IMAGE_NAME:${{ env.TAG }} $ECR_REGISTRY/$IMAGE_NAME:${{ env.TAG }}
         docker push $ECR_REGISTRY/$IMAGE_NAME:${{ env.TAG }}
         echo "ECR_IMAGE=$ECR_REGISTRY/$IMAGE_NAME:${{ env.TAG }}" >> $GITHUB_ENV
-
+        
  
 
 
