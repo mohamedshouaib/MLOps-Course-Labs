@@ -31,13 +31,13 @@ jobs:
         pytest test.py -v
 
 
-  deploy:
-    name: Build, Push to ECR & Deploy to EC2
-    needs: test  
-    runs-on: ubuntu-latest
+  # deploy:
+  #   name: Build, Push to ECR & Deploy to EC2
+  #   needs: test  
+  #   runs-on: ubuntu-latest
 
-    env:
-      IMAGE_TAG: shouaib533
+  #   env:
+  #     IMAGE_TAG: shouaib533
 
     # steps:
     # - name: Checkout repository
