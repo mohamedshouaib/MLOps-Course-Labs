@@ -59,21 +59,15 @@ jobs:
         chmod 600 ~/.ssh/ec2_key.pem
 
     - name: Deploy to EC2
-      run: |
-        ssh -o StrictHostKeyChecking=no -i ec2_key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-          sudo yum update -y || sudo apt update -y
-          sudo yum install -y git docker || sudo apt install -y git docker.io
-          sudo service docker start || sudo systemctl start docker
-          sudo usermod -aG docker $USER
-          git clone https://github.com/${{ github.repository }} || cd $(basename "${{ github.repository }}") && git pull
-
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
-            | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
-
-          cd $(basename "${{ github.repository }}")
-          sed -i "s|image:.*|image: $ECR_IMAGE|" docker-compose.yml
-
-          docker-compose down || true
-          docker-compose pull
-          docker-compose up -d
-        EOF
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.EC2_HOST }} 
+        username: ${{ secrets.EC2_USERNAME }} 
+        key: ${{ secrets.EC2_SSH_KEY }}  
+        script: |
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+          docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/churn-prediction:latest
+          docker stop churn-prediction || true # In case the container doesn't exist yet
+          docker rm churn-prediction || true
+          docker run -d -p 80:8005 --name churn-prediction ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/churn-prediction:latest 
+          EOF
