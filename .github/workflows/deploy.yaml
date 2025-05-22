@@ -59,61 +59,10 @@ jobs:
         docker push $FULL_IMAGE_NAME
         echo "ECR_IMAGE=$FULL_IMAGE_NAME" >> $GITHUB_ENV
 
- 
-
-
-# name: CI/CD Pipeline - Deploy to AWS EC2
-
-# on:
-#   push:
-#     branches:
-#       - monitoring
-
-# env:
-#   AWS_REGION: ${{ secrets.AWS_REGION }}
-#   IMAGE_NAME: churn-prediction
-#   TAG: alaa001  
-
-# jobs:
-#   build-and-deploy:
-#     runs-on: ubuntu-latest
-
-#     steps:
-#       - name: Checkout repository
-#         uses: actions/checkout@v3
-
-#       - name: Set up Python
-#         uses: actions/setup-python@v4
-#         with:
-#           python-version: 3.12
-
-#       - name: Install dependencies
-#         run: |
-#           pip install -r requirements.txt
-
-#       - name: Run Unit Tests
-#         run: pytest test/
-
-#       - name: Log in to Amazon ECR
-#         id: login-ecr
-#         uses: aws-actions/amazon-ecr-login@v2
-
-#       - name: Build Docker image
-#         run: |
-#           docker build -t $IMAGE_NAME:${{ env.TAG }} .
-
-#       - name: Tag and Push to ECR
-#         env:
-#           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-#         run: |
-#           docker tag $IMAGE_NAME:${{ env.TAG }} $ECR_REGISTRY/$IMAGE_NAME:${{ env.TAG }}
-#           docker push $ECR_REGISTRY/$IMAGE_NAME:${{ env.TAG }}
-#           echo "ECR_IMAGE=$ECR_REGISTRY/$IMAGE_NAME:${{ env.TAG }}" >> $GITHUB_ENV
-
-#       - name: Setup SSH
-#         run: |
-#           echo "${{ secrets.EC2_SSH_KEY }}" | base64 -d > ec2_key.pem
-#           chmod 400 ec2_key.pem
+    - name: Setup SSH
+      run: |
+        echo "${{ secrets.EC2_SSH_KEY }}" | base64 -d > ec2_key.pem
+        chmod 400 ec2_key.pem
 
 #       - name: Deploy to EC2
 #         run: |
