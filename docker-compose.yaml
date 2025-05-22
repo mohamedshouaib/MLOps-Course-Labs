@@ -2,14 +2,14 @@ services:
   api:
     build: app
     ports:
-      - 8000:8000
+      - 443:8000
     volumes:
       - models:/mlruns
 
   prometheus:
     image: prom/prometheus:latest
     ports:
-      - 9090:9090
+      - 9091:9090
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
     command:
