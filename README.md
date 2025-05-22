@@ -1,55 +1,88 @@
+```markdown
 # Churn Prediction API
 
-This repository contains a FastAPI application that serves a machine learning model for customer churn prediction.
+This repository contains a Dockerized FastAPI application that serves a pre-trained machine learning model (Random Forest) for predicting customer churn. It includes testing, CI/CD deployment to AWS EC2, and monitoring with Prometheus and Grafana.
 
-## Project Structure
+---
+
+## 🗂️ Project Structure
 
 ```
+
 .
-├── app.py                  # FastAPI application
-├── test.py                 # Tests for the API
-├── requirements.txt        # Dependencies
-├── Dockerfile              # Docker file
-├── test.py                 # to test model and API
-└── Models                  # Production_model
+├── app
+│   ├── app.py                 # Main FastAPI app
+│   ├── test.py                # Pytest script for unit/integration tests
+│   ├── requirements.txt       # Python dependencies
+│   ├── Dockerfile             # Docker build file
+│   └── models
+│       └── random\_forest\_model.pkl  # Serialized ML model
+├── monitoring
+│   ├── dashboard.json         # Grafana dashboard config
+│   ├── dashboard.yml          # Grafana dashboard provisioning
+│   ├── datasource.yml         # Grafana datasource configuration
+│   └── prometheus.yml         # Prometheus scrape config
+├── docker-compose.yaml        # Multi-container app (API + monitoring)
+├── .github/workflows/deploy.yaml  # GitHub Actions CI/CD pipeline
+├── .gitignore
+└── README.md
+
+````
+
+---
+
+## 🚀 Setup & Installation
+
+1. **Clone the repository**
+
+```bash
+git clone https://github.com/mohamedshouaib/MLOps-Course-Labs.git
+cd churn-app
+````
+
+2. **Create a virtual environment**
+
+```bash
+python -m venv venv
+source venv/bin/activate  # For Windows: venv\Scripts\activate
 ```
 
-## Setup and Installation
+3. **Install dependencies**
 
-1. Clone the repository
-2. Create a virtual environment
-   ```
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-3. Install dependencies
-   ```
-   pip install -r requirements.txt
-   ```
+```bash
+pip install -r app/requirements.txt
+```
 
-## Running the API
+---
 
-1. Make sure MLflow tracking server is running
-   ```
-   mlflow server --host 127.0.0.1 --port 5000
-   ```
+## 🧠 Model Info
 
-2. Start the FastAPI application
-   ```
-   uvicorn app:app --reload --host 0.0.0.0 --port 8000
-   ```
+* **Model Type:** Random Forest Classifier
+* **Location:** `app/models/random_forest_model.pkl`
+* **Prediction Task:** Binary classification - Customer churn (1 = will churn, 0 = will stay)
 
-3. Access the API documentation at http://localhost:8000/docs
+---
 
-## API Endpoints
+## 🖥️ Run the API Locally
 
-- **/** - Home endpoint
-- **/health** - Health check endpoint
-- **/predict** - POST endpoint for making predictions
+```bash
+cd app
+uvicorn app:app --reload --host 0.0.0.0 --port 8000
+```
 
-## Making Predictions
+**Docs UI:** [http://localhost:8000/docs](http://localhost:8000/docs)
 
-Send a POST request to `/predict` with JSON data like:
+---
+
+## 🔍 API Endpoints
+
+| Endpoint   | Method | Description                  |
+| ---------- | ------ | ---------------------------- |
+| `/`        | GET    | Home message                 |
+| `/health`  | GET    | API health check             |
+| `/predict` | POST   | Predict churn from JSON data |
+
+📤 **Sample input to `/predict`**:
 
 ```json
 {
@@ -67,15 +100,71 @@ Send a POST request to `/predict` with JSON data like:
 }
 ```
 
-## Running Tests
+---
 
-Run the tests using pytest:
+## ✅ Run Tests
 
-```
+```bash
+cd app
 pytest test.py -v
 ```
 
-## Model Information
+---
 
-This API serves the best performing model from the MLflow experiment "Churn Prediction."
-It automatically loads the model with the highest accuracy from the tracking server.
+## 🐳 Docker Usage
+
+### 1. Build Image
+
+```bash
+docker build -t churn-api:latest ./app
+```
+
+### 2. Run with Docker Compose
+
+```bash
+docker-compose up --build
+```
+
+This spins up:
+
+* The FastAPI application
+* Prometheus for metrics
+* Grafana for dashboards
+
+---
+
+## 📊 Monitoring Stack
+
+Configuration files in `monitoring/`:
+
+* Prometheus is configured via `prometheus.yml`
+* Grafana dashboards and datasources are provisioned on startup.
+
+To access Grafana:
+
+```
+http://localhost:3000
+Login: admin / admin
+```
+
+---
+
+## 🚀 CI/CD (GitHub Actions → AWS EC2)
+
+Located at `.github/workflows/deploy.yaml`:
+
+* On push to `main`:
+
+  * Runs `pytest`
+  * Builds and pushes a Docker image to AWS ECR
+  * SSH into EC2
+  * Pulls the latest repo and runs updated containers
+
+> 🔐 Make sure GitHub secrets are configured:
+> `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `ECR_REPO`, `EC2_HOST`, `EC2_SSH_KEY`
+
+---
+
+## 📬 Contact
+
+Feel free to open an issue or PR for improvements or questions.
