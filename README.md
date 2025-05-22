@@ -10,6 +10,7 @@ This repository contains a FastAPI application that serves a machine learning mo
 ├── test.py                 # Tests for the API
 ├── requirements.txt        # Dependencies
 ├── Dockerfile              # Docker file
+├── test.py                 # to test model and API
 └── Models                  # Production_model
 ```
 
