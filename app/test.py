@@ -1,6 +1,10 @@
-import requests
+from fastapi.testclient import TestClient
+from app import app
+import pytest
 
-base_url = "http://127.0.0.1:8000"
+client = TestClient(app)
+
+
 
 sample_input = {
     "CreditScore": 650,
@@ -15,23 +19,23 @@ sample_input = {
     "Geography": "Spain"
 }
 
-def test_home():
-    response = requests.get(f"{base_url}/")
+@pytest.fixture
+def client():
+    with TestClient(app) as c:
+        yield c
+
+def test_home(client):
+    response = client.get("/")
     assert response.status_code == 200
     print("Home Test Passed:", response.json())
 
-def test_health():
-    response = requests.get(f"{base_url}/health")
+def test_health(client):
+    response = client.get("/health")
     assert response.status_code == 200
     assert response.json() == {"status": "ok", "model_loaded": True}
     print("Health Test Passed:", response.json())
 
-def test_predict():
-    response = requests.post(f"{base_url}/predict", json=sample_input)
+def test_predict(client):
+    response = client.post("/predict", json=sample_input)
     assert response.status_code == 200
     print("Predict Test Passed:", response.json())
-
-if __name__ == "__main__":
-    test_home()
-    test_health()
-    test_predict()

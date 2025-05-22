@@ -64,7 +64,7 @@ MODEL_DIR = "models"
 
 # === Preprocessing ===
 def preprocess(data: ChurnRequest) -> np.ndarray:
-    d = data.dict()
+    d = data.model_dump()
     d["Gender"] = 1 if d["Gender"].lower() == "male" else 0
     d["Geography_Germany"] = 1 if d["Geography"] == "Germany" else 0
     d["Geography_Spain"] = 1 if d["Geography"] == "Spain" else 0
