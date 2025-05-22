@@ -86,3 +86,4 @@ jobs:
           sudo docker-compose down || true && \
           sudo docker-compose pull && \
           sudo docker-compose up -d"
+          
